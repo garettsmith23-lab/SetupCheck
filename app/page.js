@@ -162,7 +162,7 @@ function ReviewTool() {
             <div style={{ fontSize: 13, color: '#888' }}>Enter a ticker and tap Run Check</div>
             <div style={{ fontSize: 11, color: '#aaa', marginTop: 3 }}>Uses live web search for current data</div>
             <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
-              {['FIX','VIST','AEIS','MOD','VRT','STRL','BTSG','NVDA'].map(s => (
+             {['SPY','QQQ','DIA','IWM','GLD','SLV','IBIT','USO'].map(s => (
                 <button key={s} onClick={() => { setSym(s); setTimeout(() => run(s), 50); }}
                   style={{ padding: '5px 12px', fontSize: 11, fontFamily: 'monospace', background: 'transparent', border: '1px solid #ddd', borderRadius: 5, cursor: 'pointer', color: '#666' }}>{s}</button>
               ))}
