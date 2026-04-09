@@ -61,7 +61,7 @@ export default function ReviewPage() {
       </nav>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '8px 16px 40px' }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 3, color: '#999', fontWeight: 600 }}>V3 stock review</div>
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 3, color: '#999', fontWeight: 600 }}>10Bagr</div>
           <div style={{ fontSize: 22, fontWeight: 700 }}>Setup checklist</div>
           <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>IBD + VCP + live web search</div>
         </div>
