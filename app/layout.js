@@ -2,7 +2,7 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
-  title: 'SetupCheck — AI Stock Review Checklist',
+  title: '10Bagr — Find Your Next Ten-Bagger',
   description: 'IBD methodology meets AI. Get instant 5-step stock analysis with live data.',
 };
 
