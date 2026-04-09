@@ -57,7 +57,7 @@ export default function ReviewPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#fafaf8' }}>
       <nav style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 720, margin: '0 auto' }}>
-        <Link href="/" style={{ fontSize: 16, fontWeight: 700 }}>SetupCheck</Link>
+        <Link href="/" style={{ fontSize: 16, fontWeight: 700 }}>10Bagr</Link>
       </nav>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '8px 16px 40px' }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
