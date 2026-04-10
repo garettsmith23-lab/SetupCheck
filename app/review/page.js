@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef } from "react";
 
 const PROMPT = `You are a stock analyst using IBD/MarketSurge methodology and Mark Minervini's VCP approach. Research the given stock and return ONLY a JSON object (no markdown, no backticks, no other text).
