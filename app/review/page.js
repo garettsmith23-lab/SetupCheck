@@ -48,7 +48,7 @@ export default function App() {
     try {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 6000, system: PROMPT,
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 6000, system: PROMPT,
           tools: [{ type: "web_search_20250305", name: "web_search" }],
           messages: [{ role: "user", content: `Analyze stock "${tk}". Search for current price, moving averages, earnings, next earnings date, analyst targets, industry performance. Return ONLY the JSON.` }]
         })
