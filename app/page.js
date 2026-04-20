@@ -13,9 +13,7 @@ export default function Home() {
     router.push(`/review?ticker=${t}`);
   };
 
-  const quickTickers = ['FIX', 'VIST', 'AEIS', 'MOD', 'VRT', 'WWD', 'STRL', 'FNV', 'AROC', 'ECG', 'BTSG', 'NVDA'];
-
-  // Placeholder data for coming-soon sections
+  const placeholderHot5 = Array(5).fill(null);
   const placeholderStocks = Array(8).fill(null);
   const placeholderSectors = [
     'Technology', 'Industrials', 'Energy', 'Financials',
@@ -37,7 +35,7 @@ export default function Home() {
         </p>
 
         {/* Search */}
-        <div style={{ display: 'flex', gap: 8, maxWidth: 560, margin: '0 auto 16px' }}>
+        <div style={{ display: 'flex', gap: 8, maxWidth: 560, margin: '0 auto' }}>
           <input
             type="text"
             value={sym}
@@ -54,22 +52,33 @@ export default function Home() {
             Run check →
           </button>
         </div>
+      </div>
 
-        {/* Quick tickers */}
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-          <span style={{ fontSize: 11, color: '#999', alignSelf: 'center', marginRight: 4 }}>Quick check:</span>
-          {quickTickers.map(t => (
-            <button
-              key={t}
-              onClick={() => go(t)}
-              style={{ padding: '5px 12px', fontSize: 11, fontFamily: 'monospace', fontWeight: 600, background: '#f5f4f0', border: '1px solid #e5e5e0', borderRadius: 6, cursor: 'pointer', color: '#555' }}
-            >{t}</button>
+      {/* HOT 5 SETUPS - right under the search */}
+      <div style={{ marginTop: 8, background: 'linear-gradient(135deg, #EAF3DE 0%, #f5f4f0 100%)', borderRadius: 14, padding: '20px 24px', border: '1px solid #d4e8c0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>🔥</span>
+            <div>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#1D9E75', fontWeight: 700 }}>Hot Setups Today</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a' }}>Strongest 5 right now</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: '#fff', color: '#633806', fontWeight: 600, border: '1px solid #e5d4a8' }}>Coming soon</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          {placeholderHot5.map((_, i) => (
+            <div key={i} style={{ background: '#fff', border: '1px solid #e5e5e0', borderRadius: 10, padding: '12px 14px', opacity: 0.7 }}>
+              <div style={{ height: 10, background: '#f0f0ed', borderRadius: 3, marginBottom: 8, width: '40%' }} />
+              <div style={{ height: 18, background: '#e8e8e4', borderRadius: 4, marginBottom: 8, width: '65%' }} />
+              <div style={{ fontSize: 9, padding: '2px 8px', borderRadius: 4, background: '#EAF3DE', color: '#27500A', fontWeight: 700, display: 'inline-block' }}>BUY</div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* TOP 20 STOCKS */}
-      <div style={{ marginTop: 40 }}>
+      <div style={{ marginTop: 44 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#1D9E75', fontWeight: 700 }}>Today's Leaders</div>
