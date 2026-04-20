@@ -2,31 +2,26 @@
 
 import { useState, useRef } from "react";
 
-const PROMPT = `You are a stock analyst using IBD/MarketSurge methodology and Mark Minervini's VCP approach. Research the given stock and return ONLY a JSON object (no markdown, no backticks, no other text).
-
-CRITICAL DATA RULES — follow these or the analysis is worthless:
-1. You MUST search the web for the current price. Do NOT guess or use training data. The price must come from a source dated within the last 2 trading days.
-2. You MUST search specifically for the stock's 50-day and 200-day simple moving averages. Search queries like "[TICKER] 50 day moving average" and "[TICKER] 200 day SMA". Do NOT infer MAs from "the stock is in an uptrend" type commentary — get the actual numbers.
-3. In every "detail" field for chart checks, include the ACTUAL NUMBERS you found. Example: "Price $142.30 vs 50d MA $138.50 — above by 2.7%". If you cannot find a real number, set pass:false and write "Could not verify — [what you searched]".
-4. If you cannot verify the current price from a fresh source, set step1_chart.status to "warn" and note it in the verdict summary.
-5. Never fabricate moving average values. It is better to mark something unverified than to guess.
-
-Today's date context: it is currently April 2026. Search for the most recent trading session data. Do not assume any specific market conditions — let the searches tell you what's happening.
-
-JSON structure:
-{"symbol":"TICKER","company":"Name","price":0.00,"price_source":"e.g. Yahoo Finance Apr 8","sector":"Sector","industry":"Industry","market_cap":"$XB","step1_chart":{"score":"X/4","status":"pass","above_200d":{"pass":true,"detail":"Price $X vs 200d $Y — above/below by Z%"},"above_50d":{"pass":true,"detail":"Price $X vs 50d $Y — above/below by Z%"},"base_forming":{"pass":true,"detail":"text"},"volume_declining":{"pass":true,"detail":"text"}},"step2_rs":{"score":"X/3","status":"pass","rs_trending":{"pass":true,"detail":"text"},"rs_rank":{"pass":true,"detail":"text"},"rs_leading":{"pass":true,"detail":"text"}},"step3_fundamentals":{"score":"X/4","status":"pass","eps_rating":{"pass":true,"detail":"text"},"eps_accelerating":{"pass":true,"detail":"text"},"sales_growth":{"pass":true,"detail":"text"},"smr_quality":{"pass":true,"detail":"text"}},"step4_sector":{"score":"X/4","status":"pass","group_rank":{"pass":true,"detail":"text"},"rotation":{"pass":true,"detail":"text"},"catalyst":{"pass":true,"detail":"text"},"macro":{"pass":true,"detail":"text"}},"step5_trade":{"score":"X/5","status":"pass","entry_zone":{"pass":true,"detail":"$X-$X"},"stop_loss":{"pass":true,"detail":"$X (X%)"},"target_1":{"pass":true,"detail":"$X (+X%)"},"target_2":{"pass":true,"detail":"$X (+X%)"},"rr_ratio":{"pass":true,"detail":"X:1"}},"verdict":{"result":"PASS","trade_type":"Swing","conviction":"High","position_size":"$X for $200K acct","summary":"thesis","action":"action"},"total_pass":18,"total_checks":20,"pct_off_high":-5.5,"vol_trend":"Drying up"}
-
-Status: "pass" if most green AND data verified, "warn" if yellow flag OR data uncertain, "fail" if critical failure. pass:true=green, pass:false=yellow/red flag.`;
-
 function getJSON(content) {
   if (!content || !Array.isArray(content)) return null;
   const t = content.filter(b => b.type === "text").map(b => b.text).join("\n");
   if (!t.trim()) return null;
-  const c = t.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+  const c = t.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").replace(/<\/?cite[^>]*>/gi, "").trim();
   const a = c.indexOf("{");
   const z = c.lastIndexOf("}");
   if (a === -1 || z === -1) return null;
   return JSON.parse(c.substring(a, z + 1));
+}
+
+function stripCites(obj) {
+  if (typeof obj === "string") return obj.replace(/<\/?cite[^>]*>/gi, "").replace(/<\/?antml:cite[^>]*>/gi, "");
+  if (Array.isArray(obj)) return obj.map(stripCites);
+  if (obj && typeof obj === "object") {
+    const out = {};
+    for (const k in obj) out[k] = stripCites(obj[k]);
+    return out;
+  }
+  return obj;
 }
 
 export default function App() {
@@ -54,17 +49,15 @@ export default function App() {
       .catch(() => setSigErr("Signal unavailable"));
 
     try {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 6000, system: PROMPT,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: [{ role: "user", content: `Analyze stock "${tk}". Search for current price, moving averages, earnings, next earnings date, analyst targets, industry performance. Return ONLY the JSON.` }]
-        })
+      const r = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol: tk })
       });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${r.status}`); }
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || `API error ${r.status}`); }
       const j = await r.json();
       if (!j.content?.length) throw new Error("Empty response");
-      let p; try { p = getJSON(j.content); } catch { throw new Error("Couldn't parse — hit Retry, usually works on 2nd attempt."); }
+      let p; try { p = stripCites(getJSON(j.content)); } catch { throw new Error("Couldn't parse — hit Retry, usually works on 2nd attempt."); }
       if (!p?.symbol) throw new Error("Incomplete data — hit Retry.");
       setData(p);
     } catch (e) { setErr(e.message); }
