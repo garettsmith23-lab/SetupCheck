@@ -239,4 +239,31 @@ function ReviewContent() {
             </div>
           )}
           <div style={{ textAlign: "center", marginTop: 14 }}>
-            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); autoRan.current = false; }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "
+            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); autoRan.current = false; }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>Analyze another</button>
+          </div>
+        </div>
+      )}
+
+      {!busy && !data && !err && (
+        <div style={{ textAlign: "center", padding: "32px 0" }}>
+          <div style={{ fontSize: 13, color: "var(--color-text-secondary,#888)" }}>Enter a ticker and tap Run Check</div>
+          <div style={{ fontSize: 11, color: "var(--color-text-tertiary,#aaa)", marginTop: 3 }}>Uses live web search for current data</div>
+          <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 16, flexWrap: "wrap" }}>
+            {["FIX", "VIST", "AEIS", "MOD", "VRT", "WWD", "STRL", "FNV", "AROC", "ECG", "BTSG"].map(s => (
+              <button key={s} onClick={() => { setSym(s); setTimeout(() => run(s), 50); }}
+                style={{ padding: "5px 12px", fontSize: 11, fontFamily: "monospace", background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 5, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>{s}</button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: "center", padding: "44px 0", color: "#999", fontSize: 13 }}>Loading…</div>}>
+      <ReviewContent />
+    </Suspense>
+  );
+}
