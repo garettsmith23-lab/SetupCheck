@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 function getJSON(content) {
   if (!content || !Array.isArray(content)) return null;
@@ -25,6 +26,7 @@ function stripCites(obj) {
 }
 
 export default function App() {
+  const searchParams = useSearchParams();
   const [sym, setSym] = useState("");
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState(null);
@@ -33,6 +35,7 @@ export default function App() {
   const [err, setErr] = useState(null);
   const [msg, setMsg] = useState("");
   const iv = useRef(null);
+  const autoRan = useRef(false);
 
   const steps = ["Searching price data...", "Checking moving averages...", "Analyzing RS...", "Pulling earnings...", "Checking catalysts...", "Evaluating sector...", "Calculating R:R...", "Building trade plan..."];
 
@@ -63,6 +66,16 @@ export default function App() {
     } catch (e) { setErr(e.message); }
     finally { clearInterval(iv.current); setBusy(false); }
   };
+
+  // Auto-run when ?ticker= is in URL
+  useEffect(() => {
+    const urlTicker = searchParams.get("ticker");
+    if (urlTicker && !autoRan.current) {
+      autoRan.current = true;
+      setSym(urlTicker.toUpperCase());
+      run(urlTicker);
+    }
+  }, [searchParams]);
 
   const clr = s => s === "pass" ? "#1D9E75" : s === "warn" ? "#BA7517" : "#A32D2D";
   const bg = s => s === "pass" ? "#EAF3DE" : s === "warn" ? "#FAEEDA" : "#FCEBEB";
@@ -227,7 +240,7 @@ export default function App() {
             </div>
           )}
           <div style={{ textAlign: "center", marginTop: 14 }}>
-            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>Analyze another</button>
+            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); autoRan.current = false; }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>Analyze another</button>
           </div>
         </div>
       )}
