@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 function getJSON(content) {
@@ -25,7 +25,7 @@ function stripCites(obj) {
   return obj;
 }
 
-export default function App() {
+function ReviewContent() {
   const searchParams = useSearchParams();
   const [sym, setSym] = useState("");
   const [busy, setBusy] = useState(false);
@@ -67,7 +67,6 @@ export default function App() {
     finally { clearInterval(iv.current); setBusy(false); }
   };
 
-  // Auto-run when ?ticker= is in URL
   useEffect(() => {
     const urlTicker = searchParams.get("ticker");
     if (urlTicker && !autoRan.current) {
@@ -240,23 +239,4 @@ export default function App() {
             </div>
           )}
           <div style={{ textAlign: "center", marginTop: 14 }}>
-            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); autoRan.current = false; }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>Analyze another</button>
-          </div>
-        </div>
-      )}
-
-      {!busy && !data && !err && (
-        <div style={{ textAlign: "center", padding: "32px 0" }}>
-          <div style={{ fontSize: 13, color: "var(--color-text-secondary,#888)" }}>Enter a ticker and tap Run Check</div>
-          <div style={{ fontSize: 11, color: "var(--color-text-tertiary,#aaa)", marginTop: 3 }}>Uses live web search for current data</div>
-          <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 16, flexWrap: "wrap" }}>
-            {["FIX", "VIST", "AEIS", "MOD", "VRT", "WWD", "STRL", "FNV", "AROC", "ECG", "BTSG"].map(s => (
-              <button key={s} onClick={() => { setSym(s); setTimeout(() => run(s), 50); }}
-                style={{ padding: "5px 12px", fontSize: 11, fontFamily: "monospace", background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 5, cursor: "pointer", color: "var(--color-text-secondary,#666)" }}>{s}</button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+            <button onClick={() => { setData(null); setSym(""); setSig(null); setSigErr(null); autoRan.current = false; }} style={{ padding: "7px 18px", fontSize: 12, background: "transparent", border: "1px solid var(--color-border-tertiary,#ddd)", borderRadius: 6, cursor: "
