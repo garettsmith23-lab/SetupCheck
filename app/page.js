@@ -1,11 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [sym, setSym] = useState('');
+  const [sectors, setSectors] = useState(null);
+  const [industries, setIndustries] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/sectors')
+      .then(r => r.json())
+      .then(d => {
+        if (d.sectors) setSectors(d.sectors);
+        if (d.industries) setIndustries(d.industries);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const go = (ticker) => {
     const t = (ticker || sym).trim().toUpperCase();
@@ -13,18 +27,48 @@ export default function Home() {
     router.push(`/review?ticker=${t}`);
   };
 
+  const goSector = (ticker) => router.push(`/sector/${ticker}`);
+
   const placeholderHot5 = Array(5).fill(null);
   const placeholderStocks = Array(8).fill(null);
-  const placeholderSectors = [
-    'Technology', 'Industrials', 'Energy', 'Financials',
-    'Healthcare', 'Discretionary', 'Staples', 'Utilities',
-    'Materials', 'Real Estate', 'Communications'
-  ];
+
+  const rsBadge = (rs) => {
+    if (rs > 5) return { bg: '#EAF3DE', color: '#1D9E75', label: 'Strong' };
+    if (rs > 0) return { bg: '#F0F7EC', color: '#568A3F', label: 'Leading' };
+    if (rs > -5) return { bg: '#FAEEDA', color: '#BA7517', label: 'Lagging' };
+    return { bg: '#FCEBEB', color: '#A32D2D', label: 'Weak' };
+  };
+
+  const Tile = ({ item, rank, onClick }) => {
+    const b = rsBadge(item.rs_blended);
+    return (
+      <div
+        onClick={onClick}
+        style={{
+          background: '#fff', border: '1px solid #eee', borderRadius: 10,
+          padding: '14px 16px', cursor: 'pointer', transition: 'all 0.15s',
+          display: 'flex', flexDirection: 'column', gap: 6
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#eee'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>#{rank}</span>
+          <span style={{ fontSize: 10, fontFamily: 'monospace', fontWeight: 700, color: '#1a1a1a' }}>{item.ticker}</span>
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.25 }}>{item.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+          <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: b.bg, color: b.color, fontWeight: 700 }}>{b.label}</span>
+          <span style={{ fontSize: 11, color: '#666' }}>
+            {item.rs_blended > 0 ? '+' : ''}{item.rs_blended}% vs SPY
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 60px' }}>
-
-      {/* HERO */}
       <div style={{ textAlign: 'center', padding: '40px 0 32px' }}>
         <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 4, color: '#888', fontWeight: 700, marginBottom: 8 }}>10BAGR</div>
         <h1 style={{ fontSize: 42, fontWeight: 800, margin: '0 0 12px', color: '#1a1a1a', lineHeight: 1.1 }}>
@@ -33,8 +77,6 @@ export default function Home() {
         <p style={{ fontSize: 16, color: '#666', margin: '0 auto 28px', maxWidth: 560, lineHeight: 1.5 }}>
           IBD methodology + VCP analysis + live signals. Know in 30 seconds if a stock is buyable.
         </p>
-
-        {/* Search */}
         <div style={{ display: 'flex', gap: 8, maxWidth: 560, margin: '0 auto' }}>
           <input
             type="text"
@@ -54,7 +96,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* HOT 5 SETUPS - right under the search */}
       <div style={{ marginTop: 8, background: 'linear-gradient(135deg, #EAF3DE 0%, #f5f4f0 100%)', borderRadius: 14, padding: '20px 24px', border: '1px solid #d4e8c0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -77,7 +118,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* TOP 20 STOCKS */}
       <div style={{ marginTop: 44 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
@@ -100,49 +140,44 @@ export default function Home() {
         </div>
       </div>
 
-      {/* TOP SECTORS */}
       <div style={{ marginTop: 44 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#BA7517', fontWeight: 700 }}>Sector Rotation</div>
             <h2 style={{ fontSize: 22, fontWeight: 700, margin: '4px 0 0', color: '#1a1a1a' }}>Top sectors</h2>
           </div>
-          <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: '#FAEEDA', color: '#633806', fontWeight: 600 }}>Coming soon</span>
+          {sectors && <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: '#EAF3DE', color: '#27500A', fontWeight: 600 }}>Live</span>}
         </div>
         <p style={{ fontSize: 13, color: '#888', margin: '0 0 16px' }}>
-          Ranked by relative strength vs SPY. Click a sector to see the top stocks within it.
+          11 S&P sectors ranked by blended RS (1mo + 3mo + 6mo) vs SPY. Click for details.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {placeholderSectors.map((name, i) => (
-            <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '14px 16px', opacity: 0.55, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>#{i + 1}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#555', marginTop: 2 }}>{name}</div>
-              </div>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f0f0ed' }} />
-            </div>
-          ))}
-        </div>
+        {loading && <div style={{ textAlign: 'center', padding: 30, color: '#999', fontSize: 13 }}>Loading sector data…</div>}
+        {sectors && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+            {sectors.map((s, i) => <Tile key={s.ticker} item={s} rank={i + 1} onClick={() => goSector(s.ticker)} />)}
+          </div>
+        )}
       </div>
 
-      {/* TOP INDUSTRIES (placeholder) */}
       <div style={{ marginTop: 44 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#A32D2D', fontWeight: 700 }}>Narrow Scope</div>
             <h2 style={{ fontSize: 22, fontWeight: 700, margin: '4px 0 0', color: '#1a1a1a' }}>Top 20 industries</h2>
           </div>
-          <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: '#FAEEDA', color: '#633806', fontWeight: 600 }}>Coming soon</span>
+          {industries && <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: '#EAF3DE', color: '#27500A', fontWeight: 600 }}>Live</span>}
         </div>
         <p style={{ fontSize: 13, color: '#888', margin: '0 0 16px' }}>
-          Industry-level breakdowns using specialized ETFs (semiconductors, biotech, housing, etc.).
+          Industry ETFs ranked by blended RS vs SPY (semiconductors, biotech, homebuilders, miners, etc.).
         </p>
-        <div style={{ background: '#fafafa', border: '1px dashed #ddd', borderRadius: 10, padding: '28px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: 13, color: '#999' }}>Industry rankings will appear here</div>
-        </div>
+        {loading && <div style={{ textAlign: 'center', padding: 30, color: '#999', fontSize: 13 }}>Loading industry data…</div>}
+        {industries && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+            {industries.map((s, i) => <Tile key={s.ticker} item={s} rank={i + 1} onClick={() => goSector(s.ticker)} />)}
+          </div>
+        )}
       </div>
 
-      {/* FOOTER */}
       <div style={{ textAlign: 'center', marginTop: 60, paddingTop: 20, borderTop: '1px solid #eee' }}>
         <div style={{ fontSize: 11, color: '#999' }}>10Bagr is not financial advice. Always do your own research before investing.</div>
       </div>
